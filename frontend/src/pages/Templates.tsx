@@ -36,7 +36,7 @@ export default function Templates() {
   const [showModal, setShowModal] = useState(false)
   const [editTemplate, setEditTemplate] = useState<Template | null>(null)
   const [deleteId, setDeleteId] = useState<number | null>(null)
-  const [viewerFile, setViewerFile] = useState<{ id: string; name: string } | null>(null)
+  const [viewerFile, setViewerFile] = useState<{ id: string; name: string; mimeType?: string } | null>(null)
   const [uploading, setUploading] = useState(false)
   const [form, setForm] = useState({ name: '', category: '', description: '', tags: '' })
   const [saving, setSaving] = useState(false)
@@ -261,7 +261,7 @@ export default function Templates() {
                                 <div className="text-xs text-gray-400">{formatSize(f.size)} · {format(new Date(f.uploadedAt), 'dd/MM/yyyy')}</div>
                               </div>
                               <div className="flex gap-1.5">
-                                <button onClick={() => setViewerFile({ id: f.id, name: f.originalName })} className="btn btn-secondary btn-sm">{t('common.view')}</button>
+                                <button onClick={() => setViewerFile({ id: f.id, name: f.originalName, mimeType: (f as any).mimeType })} className="btn btn-secondary btn-sm">{t('common.view')}</button>
                                 <button
                                   onClick={async () => {
                                     const res = await client.get(`/files/download/template/${f.id}`, { responseType: 'blob' })
@@ -293,6 +293,7 @@ export default function Templates() {
           fileId={String(viewerFile.id)}
           fileType="template"
           fileName={viewerFile.name}
+          mimeType={viewerFile.mimeType}
           onClose={() => setViewerFile(null)}
         />
       )}

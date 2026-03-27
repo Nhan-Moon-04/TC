@@ -367,7 +367,27 @@ export default function ShipmentDetail() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="font-medium text-gray-700">{t('shipment.files')}</h3>
-                <div>
+                <div className="flex gap-2">
+                  {shipment.files && shipment.files.length > 1 && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          const res = await client.get(`/files/download-zip/shipment/${id}`, { responseType: 'blob' })
+                          const url = URL.createObjectURL(res.data)
+                          const a = document.createElement('a')
+                          a.href = url
+                          a.download = `${shipment.code}.zip`
+                          a.click()
+                          URL.revokeObjectURL(url)
+                        } catch {
+                          toast.error(t('common.error'))
+                        }
+                      }}
+                      className="btn btn-secondary btn-sm"
+                    >
+                      ⬇ Tải tất cả ({shipment.files.length})
+                    </button>
+                  )}
                   <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
                   <button
                     onClick={() => fileInputRef.current?.click()}
@@ -525,6 +545,7 @@ export default function ShipmentDetail() {
           fileId={String(viewerFile.id)}
           fileType="shipment"
           fileName={viewerFile.originalName}
+          mimeType={viewerFile.mimeType}
           onClose={() => setViewerFile(null)}
         />
       )}

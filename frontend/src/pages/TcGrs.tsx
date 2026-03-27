@@ -9,14 +9,15 @@ import ConfirmDialog from '../components/ConfirmDialog'
 import PDFViewer from '../components/PDFViewer'
 
 interface TcGrsFile {
-  id: number
+  id: string
   originalName: string
   size: number
-  createdAt: string
+  mimeType?: string
+  uploadedAt: string
 }
 
 interface TcGrsRecord {
-  id: number
+  id: string
   type: 'TC' | 'GRS' | 'OTHER'
   certNumber?: string
   issueDate?: string
@@ -24,12 +25,12 @@ interface TcGrsRecord {
   completed: boolean
   alert: boolean
   notes?: string
-  company?: { id: number; name: string }
+  company?: { id: string; name: string }
   files?: TcGrsFile[]
 }
 
 interface Company {
-  id: number
+  id: string
   name: string
 }
 
@@ -43,9 +44,9 @@ export default function TcGrs() {
   const [filterCompleted, setFilterCompleted] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [editRecord, setEditRecord] = useState<TcGrsRecord | null>(null)
-  const [deleteId, setDeleteId] = useState<number | null>(null)
-  const [expandedId, setExpandedId] = useState<number | null>(null)
-  const [viewerFile, setViewerFile] = useState<{ id: number; name: string } | null>(null)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [viewerFile, setViewerFile] = useState<{ id: string; name: string; mimeType?: string } | null>(null)
   const [uploading, setUploading] = useState(false)
   const [form, setForm] = useState({ type: 'TC', companyId: '', certNumber: '', issueDate: '', expiryDate: '', completed: false, notes: '' })
   const [saving, setSaving] = useState(false)
@@ -116,7 +117,7 @@ export default function TcGrs() {
     }
   }
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     try {
       await client.delete(`/tcgrs/${id}`)
       toast.success(t('common.deleteSuccess'))
@@ -135,7 +136,7 @@ export default function TcGrs() {
     }
   }
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, tcgrsId: number) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, tcgrsId: string) => {
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
@@ -153,7 +154,7 @@ export default function TcGrs() {
     }
   }
 
-  const handleDeleteFile = async (tcgrsId: number, fileId: number) => {
+  const handleDeleteFile = async (tcgrsId: string, fileId: string) => {
     try {
       await client.delete(`/tcgrs/${tcgrsId}/files/${fileId}`)
       toast.success(t('common.deleteSuccess'))
@@ -311,10 +312,10 @@ export default function TcGrs() {
                                   <span className="text-xl">📄</span>
                                   <div className="flex-1 min-w-0">
                                     <div className="text-sm font-medium text-gray-800 truncate">{f.originalName}</div>
-                                    <div className="text-xs text-gray-400">{formatSize(f.size)} · {format(new Date(f.createdAt), 'dd/MM/yyyy')}</div>
+                                    <div className="text-xs text-gray-400">{formatSize(f.size)} · {format(new Date(f.uploadedAt), 'dd/MM/yyyy')}</div>
                                   </div>
                                   <div className="flex gap-1.5">
-                                    <button onClick={() => setViewerFile({ id: f.id, name: f.originalName })} className="btn btn-secondary btn-sm">{t('common.view')}</button>
+                                    <button onClick={() => setViewerFile({ id: f.id, name: f.originalName, mimeType: f.mimeType })} className="btn btn-secondary btn-sm">{t('common.view')}</button>
                                     <button
                                       onClick={async () => {
                                         const res = await client.get(`/files/download/tcgrs/${f.id}`, { responseType: 'blob' })
@@ -348,6 +349,7 @@ export default function TcGrs() {
           fileId={String(viewerFile.id)}
           fileType="tcgrs"
           fileName={viewerFile.name}
+          mimeType={viewerFile.mimeType}
           onClose={() => setViewerFile(null)}
         />
       )}
