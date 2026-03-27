@@ -9,10 +9,10 @@ import ConfirmDialog from '../components/ConfirmDialog'
 import PDFViewer from '../components/PDFViewer'
 
 interface TemplateFile {
-  id: number
+  id: string
   originalName: string
   size: number
-  createdAt: string
+  uploadedAt: string
 }
 
 interface Template {
@@ -36,7 +36,7 @@ export default function Templates() {
   const [showModal, setShowModal] = useState(false)
   const [editTemplate, setEditTemplate] = useState<Template | null>(null)
   const [deleteId, setDeleteId] = useState<number | null>(null)
-  const [viewerFile, setViewerFile] = useState<{ id: number; name: string } | null>(null)
+  const [viewerFile, setViewerFile] = useState<{ id: string; name: string } | null>(null)
   const [uploading, setUploading] = useState(false)
   const [form, setForm] = useState({ name: '', category: '', description: '', tags: '' })
   const [saving, setSaving] = useState(false)
@@ -132,7 +132,7 @@ export default function Templates() {
     }
   }
 
-  const handleDeleteFile = async (templateId: number, fileId: number) => {
+  const handleDeleteFile = async (templateId: number, fileId: string) => {
     try {
       // Delete file - backend should support DELETE /templates/:id/files/:fileId
       await client.delete(`/templates/${templateId}/files/${fileId}`)
@@ -258,7 +258,7 @@ export default function Templates() {
                               <span className="text-xl">📄</span>
                               <div className="flex-1 min-w-0">
                                 <div className="text-sm font-medium text-gray-800 truncate">{f.originalName}</div>
-                                <div className="text-xs text-gray-400">{formatSize(f.size)} · {format(new Date(f.createdAt), 'dd/MM/yyyy')}</div>
+                                <div className="text-xs text-gray-400">{formatSize(f.size)} · {format(new Date(f.uploadedAt), 'dd/MM/yyyy')}</div>
                               </div>
                               <div className="flex gap-1.5">
                                 <button onClick={() => setViewerFile({ id: f.id, name: f.originalName })} className="btn btn-secondary btn-sm">{t('common.view')}</button>

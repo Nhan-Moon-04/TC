@@ -13,7 +13,7 @@ interface ShipmentFile {
   id: string
   originalName: string
   size: number
-  createdAt: string
+  uploadedAt: string
   mimeType?: string
 }
 
@@ -391,7 +391,7 @@ export default function ShipmentDetail() {
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-gray-800 truncate">{file.originalName}</div>
                         <div className="text-xs text-gray-400">
-                          {formatSize(file.size)} · {format(new Date(file.createdAt), 'dd/MM/yyyy')}
+                          {formatSize(file.size)} · {format(new Date(file.uploadedAt), 'dd/MM/yyyy')}
                         </div>
                       </div>
                       <div className="flex gap-1.5">

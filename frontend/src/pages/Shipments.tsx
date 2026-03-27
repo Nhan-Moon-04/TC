@@ -41,6 +41,9 @@ export default function Shipments() {
   const [loading, setLoading] = useState(true)
   const [filterStatus, setFilterStatus] = useState('')
   const [filterType, setFilterType] = useState('')
+  const [filterTc, setFilterTc] = useState(false)
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const [searchQ, setSearchQ] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState({
@@ -77,6 +80,9 @@ export default function Shipments() {
   const filtered = shipments.filter(s => {
     if (filterStatus && s.status !== filterStatus) return false
     if (filterType && s.type !== filterType) return false
+    if (filterTc && !s.tcRequired) return false
+    if (dateFrom && new Date(s.createdAt) < new Date(dateFrom)) return false
+    if (dateTo && new Date(s.createdAt) > new Date(dateTo + 'T23:59:59')) return false
     if (searchQ) {
       const q = searchQ.toLowerCase()
       return s.code.toLowerCase().includes(q) || s.company?.name?.toLowerCase()?.includes(q)
@@ -122,7 +128,7 @@ export default function Shipments() {
       </div>
 
       {/* Filter bar */}
-      <div className="card p-4 flex flex-wrap gap-3">
+      <div className="card p-4 flex flex-wrap gap-3 items-center">
         <input
           type="text"
           placeholder={t('common.search')}
@@ -141,8 +147,33 @@ export default function Shipments() {
           <option value="EXPORT">{t('shipment.export')}</option>
           <option value="IMPORT">{t('shipment.import')}</option>
         </select>
-        {(filterStatus || filterType || searchQ) && (
-          <button onClick={() => { setFilterStatus(''); setFilterType(''); setSearchQ('') }} className="btn btn-secondary btn-sm">
+        <label className="flex items-center gap-2 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={filterTc}
+            onChange={e => setFilterTc(e.target.checked)}
+            className="w-4 h-4 text-blue-600 rounded"
+          />
+          <span className="text-sm text-gray-700 whitespace-nowrap">Có TC</span>
+        </label>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500 whitespace-nowrap">Từ ngày</span>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={e => setDateFrom(e.target.value)}
+            className="input w-36"
+          />
+          <span className="text-sm text-gray-500">đến</span>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={e => setDateTo(e.target.value)}
+            className="input w-36"
+          />
+        </div>
+        {(filterStatus || filterType || searchQ || filterTc || dateFrom || dateTo) && (
+          <button onClick={() => { setFilterStatus(''); setFilterType(''); setSearchQ(''); setFilterTc(false); setDateFrom(''); setDateTo('') }} className="btn btn-secondary btn-sm">
             {t('common.clear')}
           </button>
         )}
