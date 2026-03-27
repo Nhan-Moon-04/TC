@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  STAFF
+}
+
+enum ShipmentType {
+  EXPORT
+  IMPORT
+}
+
+enum ShipmentStatus {
+  PENDING
+  WAITING_TC
+  COMPLETED
+  CANCELLED
+}
+
+enum TcGrsType {
+  TC
+  GRS
+  OTHER
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  name      String
+  role      Role     @default(STAFF)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Company {
+  id          String     @id @default(cuid())
+  name        String
+  code        String     @unique
+  country     String?
+  notes       String?
+  shipments   Shipment[]
+  tcGrsList   TcGrs[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Product {
+  id              String            @id @default(cuid())
+  name            String
+  nameEn          String?
+  nameZh          String?
+  hsCode          String
+  itemCode        String?
+  notes           String?
+  hsCodeNote      HsCodeNote?       @relation(fields: [hsCode], references: [hsCode])
+  shipmentProducts ShipmentProduct[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model HsCodeNote {
+  id        String    @id @default(cuid())
+  hsCode    String    @unique
+  notes     String
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Shipment {
+  id            String            @id @default(cuid())
+  code          String            @unique
+  companyId     String
+  company       Company           @relation(fields: [companyId], references: [id])
+  type          ShipmentType
+  status        ShipmentStatus    @default(PENDING)
+  tcRequired    Boolean           @default(false)
+  tcCompleted   Boolean           @default(false)
+  tcDueDate     DateTime?
+  notes         String?
+  products      ShipmentProduct[]
+  files         ShipmentFile[]
+  checklist     ChecklistItem[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+}
+
+model ShipmentProduct {
+  id         String   @id @default(cuid())
+  shipmentId String
+  shipment   Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  quantity   Float?
+  unit       String?
+  notes      String?
+}
+
+model ShipmentFile {
+  id         String   @id @default(cuid())
+  shipmentId String
+  shipment   Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  name       String
+  originalName String
+  path       String
+  size       Int?
+  mimeType   String?
+  uploadedAt DateTime @default(now())
+}
+
+model ChecklistItem {
+  id         String   @id @default(cuid())
+  shipmentId String
+  shipment   Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  label      String
+  completed  Boolean  @default(false)
+  order      Int      @default(0)
+}
+
+model TcGrs {
+  id          String      @id @default(cuid())
+  companyId   String
+  company     Company     @relation(fields: [companyId], references: [id])
+  type        TcGrsType
+  certNumber  String?
+  issueDate   DateTime?
+  expiryDate  DateTime?
+  completed   Boolean     @default(false)
+  files       TcGrsFile[]
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model TcGrsFile {
+  id           String   @id @default(cuid())
+  tcGrsId      String
+  tcGrs        TcGrs    @relation(fields: [tcGrsId], references: [id], onDelete: Cascade)
+  name         String
+  originalName String
+  path         String
+  size         Int?
+  mimeType     String?
+  uploadedAt   DateTime @default(now())
+}
+
+model Template {
+  id          String         @id @default(cuid())
+  name        String
+  category    String
+  description String?
+  tags        String[]
+  files       TemplateFile[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model TemplateFile {
+  id           String   @id @default(cuid())
+  templateId   String
+  template     Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  name         String
+  originalName String
+  path         String
+  size         Int?
+  mimeType     String?
+  uploadedAt   DateTime @default(now())
+}
+
+model Supplier {
+  id           String   @id @default(cuid())
+  name         String
+  country      String?
+  contactName  String?
+  email        String?
+  phone        String?
+  notes        String?
+  paymentTerms String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
