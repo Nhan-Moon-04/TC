@@ -242,7 +242,7 @@ export default function Templates() {
                             className="hidden"
                             id={`tmpl-file-${tmpl.id}`}
                             multiple
-                            accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.webp"
+                            accept=".pdf,.doc,.docx,.xls,.xlsx,.xlsm,.png,.jpg,.jpeg,.webp"
                           />
                           <label htmlFor={`tmpl-file-${tmpl.id}`} className="btn btn-primary btn-sm cursor-pointer">
                             {uploading ? t('common.loading') : `+ ${t('template.uploadFile')}`}
