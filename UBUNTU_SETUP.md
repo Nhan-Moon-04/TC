@@ -133,6 +133,8 @@ server {
     listen 80;
     server_name nthiennhan.duckdns.org;
 
+    client_max_body_size 50M;
+
     root /root/TC/frontend/dist;
     index index.html;
 
