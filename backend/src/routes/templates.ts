@@ -78,7 +78,7 @@ router.post('/:id/files', uploadTemplate.array('files', 20), async (req: Request
       data: {
         templateId: req.params.id,
         name: f.filename,
-        originalName: f.originalname,
+        originalName: Buffer.from(f.originalname, 'latin1').toString('utf8'),
         path: f.path,
         size: f.size,
         mimeType: f.mimetype

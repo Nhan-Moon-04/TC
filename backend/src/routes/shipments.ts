@@ -107,7 +107,7 @@ router.post('/:id/files', uploadShipment.array('files', 20), async (req: Request
       data: {
         shipmentId: req.params.id,
         name: f.filename,
-        originalName: f.originalname,
+        originalName: Buffer.from(f.originalname, 'latin1').toString('utf8'),
         path: f.path,
         size: f.size,
         mimeType: f.mimetype

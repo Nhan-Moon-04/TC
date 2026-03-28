@@ -86,7 +86,7 @@ router.post('/:id/files', uploadTcGrs.array('files', 20), async (req: Request, r
       data: {
         tcGrsId: req.params.id,
         name: f.filename,
-        originalName: f.originalname,
+        originalName: Buffer.from(f.originalname, 'latin1').toString('utf8'),
         path: f.path,
         size: f.size,
         mimeType: f.mimetype
