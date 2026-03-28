@@ -24,7 +24,8 @@ function createStorage(subfolder: string) {
 const fileFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   const allowed = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp',
     'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+    'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-excel.sheet.macroEnabled.12']
   if (allowed.includes(file.mimetype)) cb(null, true)
   else cb(new Error('File type not allowed'))
 }
