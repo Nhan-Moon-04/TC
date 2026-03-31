@@ -8,12 +8,12 @@ router.use(authenticate)
 router.get('/', async (req: Request, res: Response): Promise<void> => {
   const { q } = req.query
   if (!q || (q as string).trim().length < 2) {
-    res.json({ products: [], shipments: [], companies: [], tcgrs: [], templates: [], suppliers: [] })
+    res.json({ products: [], shipments: [], companies: [], tcgrs: [], templates: [], suppliers: [], shipmentFiles: [], tcGrsFiles: [], templateFiles: [] })
     return
   }
   const query = q as string
 
-  const [products, shipments, companies, tcgrs, templates, suppliers] = await Promise.all([
+  const [products, shipments, companies, tcgrs, templates, suppliers, shipmentFiles, tcGrsFiles, templateFiles] = await Promise.all([
     prisma.product.findMany({
       where: { OR: [
         { name: { contains: query, mode: 'insensitive' } },
@@ -65,9 +65,33 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
       ]},
       take: 10
     }),
+    prisma.shipmentFile.findMany({
+      where: { OR: [
+        { name: { contains: query, mode: 'insensitive' } },
+        { originalName: { contains: query, mode: 'insensitive' } },
+      ]},
+      include: { shipment: { select: { code: true, id: true } } },
+      take: 10
+    }),
+    prisma.tcGrsFile.findMany({
+      where: { OR: [
+        { name: { contains: query, mode: 'insensitive' } },
+        { originalName: { contains: query, mode: 'insensitive' } },
+      ]},
+      include: { tcGrs: { select: { certNumber: true, id: true, company: { select: { name: true } } } } },
+      take: 10
+    }),
+    prisma.templateFile.findMany({
+      where: { OR: [
+        { name: { contains: query, mode: 'insensitive' } },
+        { originalName: { contains: query, mode: 'insensitive' } },
+      ]},
+      include: { template: { select: { name: true, id: true } } },
+      take: 10
+    }),
   ])
 
-  res.json({ products, shipments, companies, tcgrs, templates, suppliers })
+  res.json({ products, shipments, companies, tcgrs, templates, suppliers, shipmentFiles, tcGrsFiles, templateFiles })
 })
 
 export default router

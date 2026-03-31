@@ -11,6 +11,9 @@ interface SearchResults {
   tcgrs?: Array<{ id: number; type: string; certNumber?: string; company?: { name: string }; completed: boolean; alert: boolean }>
   templates?: Array<{ id: number; name: string; category?: string; tags?: string }>
   suppliers?: Array<{ id: number; name: string; country?: string; contact?: string }>
+  shipmentFiles?: Array<{ id: string; originalName: string; shipment: { id: string; code: string } }>
+  tcGrsFiles?: Array<{ id: string; originalName: string; tcGrs: { id: string; certNumber: string, company: { name: string } } }>
+  templateFiles?: Array<{ id: string; originalName: string; template: { id: string; name: string } }>
 }
 
 function debounce<T extends (...args: any[]) => any>(fn: T, delay: number): T {
@@ -253,13 +256,82 @@ export default function Search() {
                 {results.suppliers.map(s => (
                   <div
                     key={s.id}
-                    onClick={() => navigate('/suppliers')}
+                    onClick={() => navigate(`/suppliers/${s.id}`)}
                     className="px-5 py-3 hover:bg-gray-50 cursor-pointer transition-colors flex items-center justify-between"
                   >
                     <span className="font-medium text-gray-800">{s.name}</span>
                     <div className="flex items-center gap-2">
                       {s.country && <span className="text-sm text-gray-400">{s.country}</span>}
                       {s.contact && <span className="text-sm text-gray-500">{s.contact}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Supplier results */}
+          {results?.suppliers && results.suppliers.length > 0 && (
+            <div className="bg-white p-5 rounded-lg shadow-sm border">
+              <h2 className="text-lg font-semibold mb-3">{t('suppliers.title')} ({results.suppliers.length})</h2>
+              <div className="space-y-3">
+                {results.suppliers.map(s => (
+                  <div key={s.id} onClick={() => navigate(`/suppliers/${s.id}`)} className="p-3 bg-gray-50 rounded-md hover:bg-gray-100 cursor-pointer">
+                    <div className="font-medium text-blue-600">{s.name}</div>
+                    <div className="text-sm text-gray-500 flex space-x-4">
+                      {s.country && <span>{s.country}</span>}
+                      {s.contact && <span>{s.contact}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ShipmentFile results */}
+          {results?.shipmentFiles && results.shipmentFiles.length > 0 && (
+            <div className="bg-white p-5 rounded-lg shadow-sm border">
+              <h2 className="text-lg font-semibold mb-3">{t('shipments.files.title')} ({results.shipmentFiles.length})</h2>
+              <div className="space-y-3">
+                {results.shipmentFiles.map(f => (
+                  <div key={f.id} onClick={() => navigate(`/shipments/${f.shipment.id}`)} className="p-3 bg-gray-50 rounded-md hover:bg-gray-100 cursor-pointer">
+                    <div className="font-medium text-blue-600">{f.originalName}</div>
+                    <div className="text-sm text-gray-500">
+                      <span>{t('shipments.title_singular')}: {f.shipment.code}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TcGrsFile results */}
+          {results?.tcGrsFiles && results.tcGrsFiles.length > 0 && (
+            <div className="bg-white p-5 rounded-lg shadow-sm border">
+              <h2 className="text-lg font-semibold mb-3">{t('tcgrs.files.title')} ({results.tcGrsFiles.length})</h2>
+              <div className="space-y-3">
+                {results.tcGrsFiles.map(f => (
+                  <div key={f.id} onClick={() => navigate(`/tcgrs/${f.tcGrs.id}`)} className="p-3 bg-gray-50 rounded-md hover:bg-gray-100 cursor-pointer">
+                    <div className="font-medium text-blue-600">{f.originalName}</div>
+                    <div className="text-sm text-gray-500">
+                      <span>{t('tcgrs.title_singular')}: {f.tcGrs.certNumber || f.tcGrs.company.name}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TemplateFile results */}
+          {results?.templateFiles && results.templateFiles.length > 0 && (
+            <div className="bg-white p-5 rounded-lg shadow-sm border">
+              <h2 className="text-lg font-semibold mb-3">{t('templates.files.title')} ({results.templateFiles.length})</h2>
+              <div className="space-y-3">
+                {results.templateFiles.map(f => (
+                  <div key={f.id} onClick={() => navigate(`/templates/${f.template.id}`)} className="p-3 bg-gray-50 rounded-md hover:bg-gray-100 cursor-pointer">
+                    <div className="font-medium text-blue-600">{f.originalName}</div>
+                    <div className="text-sm text-gray-500">
+                      <span>{t('templates.title_singular')}: {f.template.name}</span>
                     </div>
                   </div>
                 ))}

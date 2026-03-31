@@ -77,6 +77,7 @@
   },
   "shipment": {
     "title": "货运",
+    "title_singular": "货运",
     "code": "货运编号",
     "company": "公司",
     "type": "类型",
@@ -105,6 +106,9 @@
     "checklistEmpty": "暂无检查项",
     "export": "出口",
     "import": "进口",
+    "files": {
+      "title": "货运文件"
+    },
     "statuses": {
       "PENDING": "待处理",
       "WAITING_TC": "等待TC",
@@ -115,7 +119,8 @@
       "EXPORT": "出口",
       "IMPORT": "进口"
     }
-  },
+  },title_singular": "TC/GRS",
+    "
   "tcgrs": {
     "title": "TC/GRS",
     "certNumber": "证书编号",
@@ -126,7 +131,9 @@
     "alertBadge": "超30天",
     "company": "公司",
     "newRecord": "新建TC/GRS",
-    "editRecord": "编辑TC/GRS",
+    "editReco{
+      "title": "TC/GRS 文件"
+    } "编辑TC/GRS",
     "files": "附件",
     "types": {
       "TC": "TC",
@@ -156,12 +163,16 @@
     "linkedShipments": "关联货运",
     "linkedTcGrs": "关联TC/GRS"
   },
-  "template": {
+  "tetitle_singular": "模板",
+    "mplate": {
     "title": "模板",
     "category": "分类",
     "tags": "标签",
     "description": "描述",
     "fileCount": "文件数",
+    "files": {
+      "title": "模板文件"
+    },
     "newTemplate": "新建模板",
     "editTemplate": "编辑模板",
     "uploadFile": "上传文件",
