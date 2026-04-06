@@ -85,7 +85,9 @@
     "tcRequired": "需要TC",
     "tcCompleted": "TC已完成",
     "tcAlert": "TC警报",
-    "files": "附件",
+    "files": {
+      "title": "货运文件"
+    },
     "checklist": "检查清单",
     "addFile": "添加文件",
     "addItem": "添加项目",
@@ -106,9 +108,6 @@
     "checklistEmpty": "暂无检查项",
     "export": "出口",
     "import": "进口",
-    "files": {
-      "title": "货运文件"
-    },
     "statuses": {
       "PENDING": "待处理",
       "WAITING_TC": "等待TC",
@@ -119,10 +118,10 @@
       "EXPORT": "出口",
       "IMPORT": "进口"
     }
-  },title_singular": "TC/GRS",
-    "
+  },
   "tcgrs": {
     "title": "TC/GRS",
+    "title_singular": "TC/GRS",
     "certNumber": "证书编号",
     "issueDate": "签发日期",
     "expiryDate": "到期日期",
@@ -131,10 +130,10 @@
     "alertBadge": "超30天",
     "company": "公司",
     "newRecord": "新建TC/GRS",
-    "editReco{
+    "editRecord": "编辑TC/GRS",
+    "files": {
       "title": "TC/GRS 文件"
-    } "编辑TC/GRS",
-    "files": "附件",
+    },
     "types": {
       "TC": "TC",
       "GRS": "GRS",
@@ -163,9 +162,9 @@
     "linkedShipments": "关联货运",
     "linkedTcGrs": "关联TC/GRS"
   },
-  "tetitle_singular": "模板",
-    "mplate": {
+  "template": {
     "title": "模板",
+    "title_singular": "模板",
     "category": "分类",
     "tags": "标签",
     "description": "描述",

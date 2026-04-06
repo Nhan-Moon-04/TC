@@ -85,7 +85,9 @@
     "tcRequired": "TC Required",
     "tcCompleted": "TC Completed",
     "tcAlert": "TC Alert",
-    "files": "Files",
+    "files": {
+      "title": "Shipment Files"
+    },
     "checklist": "Checklist",
     "addFile": "Add File",
     "addItem": "Add Item",
@@ -106,9 +108,6 @@
     "checklistEmpty": "No checklist items",
     "export": "Export",
     "import": "Import",
-    "files": {
-      "title": "Shipment Files"
-    },
     "statuses": {
       "PENDING": "Pending",
       "WAITING_TC": "Waiting TC",
@@ -131,10 +130,10 @@
     "alertBadge": "Over 30 days",
     "company": "Company",
     "newRecord": "New TC/GRS",
-    "editReco{
+    "editRecord": "Edit TC/GRS",
+    "files": {
       "title": "TC/GRS Files"
-    }dit TC/GRS",
-    "files": "Files",
+    },
     "types": {
       "TC": "TC",
       "GRS": "GRS",
@@ -163,9 +162,9 @@
     "linkedShipments": "Linked Shipments",
     "linkedTcGrs": "Linked TC/GRS"
   },
-  "tetitle_singular": "Template",
-    "mplate": {
+  "template": {
     "title": "Templates",
+    "title_singular": "Template",
     "category": "Category",
     "tags": "Tags",
     "description": "Description",

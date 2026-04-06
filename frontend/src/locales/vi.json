@@ -85,7 +85,9 @@
     "tcRequired": "Cần TC",
     "tcCompleted": "TC hoàn thành",
     "tcAlert": "Cảnh báo TC",
-    "files": "Tệp đính kèm",
+    "files": {
+      "title": "Tệp Chuyến hàng"
+    },
     "checklist": "Danh sách kiểm tra",
     "addFile": "Thêm tệp",
     "addItem": "Thêm mục",
@@ -106,9 +108,6 @@
     "checklistEmpty": "Chưa có mục kiểm tra",
     "export": "Xuất khẩu",
     "import": "Nhập khẩu",
-    "files": {
-      "title": "Tệp Chuyến hàng"
-    },
     "statuses": {
       "PENDING": "Chờ xử lý",
       "WAITING_TC": "Chờ TC",
@@ -119,10 +118,10 @@
       "EXPORT": "Xuất khẩu",
       "IMPORT": "Nhập khẩu"
     }
-  },title_singular": "TC/GRS",
-    "
+  },
   "tcgrs": {
     "title": "TC/GRS",
+    "title_singular": "TC/GRS",
     "certNumber": "Số chứng nhận",
     "issueDate": "Ngày cấp",
     "expiryDate": "Ngày hết hạn",
@@ -131,10 +130,10 @@
     "alertBadge": "Quá 30 ngày",
     "company": "Doanh nghiệp",
     "newRecord": "Thêm TC/GRS",
-    "editReco{
+    "editRecord": "Sửa TC/GRS",
+    "files": {
       "title": "Tệp TC/GRS"
-    }RS",
-    "files": "Tệp đính kèm",
+    },
     "types": {
       "TC": "TC",
       "GRS": "GRS",
@@ -163,9 +162,9 @@
     "linkedShipments": "Chuyến hàng liên kết",
     "linkedTcGrs": "TC/GRS liên kết"
   },
-  "tetitle_singular": "Hồ sơ mẫu",
-    "mplate": {
+  "template": {
     "title": "Hồ sơ mẫu",
+    "title_singular": "Hồ sơ mẫu",
     "category": "Danh mục",
     "tags": "Nhãn",
     "description": "Mô tả",
