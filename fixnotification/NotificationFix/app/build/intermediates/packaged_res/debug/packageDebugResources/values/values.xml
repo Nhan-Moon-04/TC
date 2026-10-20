@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#0A0A0C</color>
+    <string name="app_description">Xiaomi HyperOS Push Notification Optimizer</string>
+    <string name="app_name">NotificationFix</string>
+    <string name="gcm_defaultSenderId" translatable="false">919340270892</string>
+    <string name="google_api_key" translatable="false">AIzaSyDG5EoC5hnHi2u3j8D5wQxMrMAijkGlVYA</string>
+    <string name="google_app_id" translatable="false">1:919340270892:android:c1d4cb31bc808780bb5889</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyDG5EoC5hnHi2u3j8D5wQxMrMAijkGlVYA</string>
+    <string name="google_storage_bucket" translatable="false">notificationfix.firebasestorage.app</string>
+    <string name="project_id" translatable="false">notificationfix</string>
+    <style name="Theme.NotificationFix" parent="android:Theme.DeviceDefault.NoActionBar"/>
+</resources>

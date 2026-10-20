@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Query all installed packages to scan apps -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+    <!-- Receive boot completed to auto-start MILLET watcher -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Wake lock to wake CPU briefly for watchdog heartbeat checks -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Request battery optimization ignore -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <!-- AlarmManager permissions for service revival -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <!-- Network state to detect connection transitions -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Pop-up window permission for incoming call UI -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- Internet for potential FCM test (future) -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- WRITE_SETTINGS: allows writing to Settings.System.MILLET_NO_RESTRICT_APP
+         WITHOUT needing Shizuku or Root. User grants via Settings > Special app access -->
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <!-- Foreground service to keep MILLET watcher alive -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- POST_NOTIFICATION for the foreground service notification (Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application
+        android:name=".NotificationFixApp"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.NotificationFix"
+        android:requestLegacyExternalStorage="false">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.NotificationFix">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Shizuku provider — REQUIRED for Shizuku to work -->
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:multiprocess="false"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
+
+        <!-- MILLET Watcher Service — monitors & repairs MILLET_NO_RESTRICT_APP
+             Active Heartbeat + Zalo Call Watcher + Immortality onTaskRemoved.
+             stopWithTask="false" ensures service is NOT killed when swiped from recents. -->
+        <service
+            android:name=".domain.MilletWatcherService"
+            android:exported="false"
+            android:stopWithTask="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Monitors system settings to maintain notification delivery for messaging apps" />
+        </service>
+
+        <!-- Boot Receiver — auto-starts MILLET watcher on device boot & unlock. -->
+        <receiver
+            android:name=".domain.BootReceiver"
+            android:exported="true"
+            android:enabled="true">
+            <intent-filter android:priority="1000">
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.USER_PRESENT" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Watchdog Alarm Receiver — revives service if terminated and runs periodic check -->
+        <receiver
+            android:name=".domain.WatchdogAlarmReceiver"
+            android:exported="false"
+            android:enabled="true" />
+
+    </application>
+
+</manifest>

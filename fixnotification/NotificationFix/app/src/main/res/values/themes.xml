@@ -1,0 +1,3 @@
+<resources>
+    <style name="Theme.NotificationFix" parent="android:Theme.DeviceDefault.NoActionBar" />
+</resources>
