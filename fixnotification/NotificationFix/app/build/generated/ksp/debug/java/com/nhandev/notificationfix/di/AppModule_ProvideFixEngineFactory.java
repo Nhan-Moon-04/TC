@@ -1,5 +1,6 @@
 package com.nhandev.notificationfix.di;
 
+import android.content.Context;
 import com.nhandev.notificationfix.domain.DeviceProfileManager;
 import com.nhandev.notificationfix.domain.FixEngine;
 import com.nhandev.notificationfix.domain.RootHelper;
@@ -13,7 +14,7 @@ import javax.annotation.processing.Generated;
 import javax.inject.Provider;
 
 @ScopeMetadata("javax.inject.Singleton")
-@QualifierMetadata
+@QualifierMetadata("dagger.hilt.android.qualifiers.ApplicationContext")
 @DaggerGenerated
 @Generated(
     value = "dagger.internal.codegen.ComponentProcessor",
@@ -28,15 +29,18 @@ import javax.inject.Provider;
     "deprecation"
 })
 public final class AppModule_ProvideFixEngineFactory implements Factory<FixEngine> {
+  private final Provider<Context> ctxProvider;
+
   private final Provider<ShizukuHelper> shizukuProvider;
 
   private final Provider<RootHelper> rootProvider;
 
   private final Provider<DeviceProfileManager> deviceProfileManagerProvider;
 
-  public AppModule_ProvideFixEngineFactory(Provider<ShizukuHelper> shizukuProvider,
-      Provider<RootHelper> rootProvider,
+  public AppModule_ProvideFixEngineFactory(Provider<Context> ctxProvider,
+      Provider<ShizukuHelper> shizukuProvider, Provider<RootHelper> rootProvider,
       Provider<DeviceProfileManager> deviceProfileManagerProvider) {
+    this.ctxProvider = ctxProvider;
     this.shizukuProvider = shizukuProvider;
     this.rootProvider = rootProvider;
     this.deviceProfileManagerProvider = deviceProfileManagerProvider;
@@ -44,17 +48,17 @@ public final class AppModule_ProvideFixEngineFactory implements Factory<FixEngin
 
   @Override
   public FixEngine get() {
-    return provideFixEngine(shizukuProvider.get(), rootProvider.get(), deviceProfileManagerProvider.get());
+    return provideFixEngine(ctxProvider.get(), shizukuProvider.get(), rootProvider.get(), deviceProfileManagerProvider.get());
   }
 
-  public static AppModule_ProvideFixEngineFactory create(Provider<ShizukuHelper> shizukuProvider,
-      Provider<RootHelper> rootProvider,
+  public static AppModule_ProvideFixEngineFactory create(Provider<Context> ctxProvider,
+      Provider<ShizukuHelper> shizukuProvider, Provider<RootHelper> rootProvider,
       Provider<DeviceProfileManager> deviceProfileManagerProvider) {
-    return new AppModule_ProvideFixEngineFactory(shizukuProvider, rootProvider, deviceProfileManagerProvider);
+    return new AppModule_ProvideFixEngineFactory(ctxProvider, shizukuProvider, rootProvider, deviceProfileManagerProvider);
   }
 
-  public static FixEngine provideFixEngine(ShizukuHelper shizuku, RootHelper root,
+  public static FixEngine provideFixEngine(Context ctx, ShizukuHelper shizuku, RootHelper root,
       DeviceProfileManager deviceProfileManager) {
-    return Preconditions.checkNotNullFromProvides(AppModule.INSTANCE.provideFixEngine(shizuku, root, deviceProfileManager));
+    return Preconditions.checkNotNullFromProvides(AppModule.INSTANCE.provideFixEngine(ctx, shizuku, root, deviceProfileManager));
   }
 }

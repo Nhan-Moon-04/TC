@@ -52,18 +52,13 @@ class MilletWatcherService : Service() {
 
     companion object {
         private const val TAG = "MilletWatcher"
-        private const val CHANNEL_ID = "millet_watcher_channel"
+        private const val CHANNEL_ID = "millet_watcher_silent_v2"
         private const val NOTIFICATION_ID = 2001
         private const val MILLET_KEY = "MILLET_NO_RESTRICT_APP"
         private const val HEARTBEAT_INTERVAL_MS = 45_000L
 
-        /** Packages that MUST always be in MILLET_NO_RESTRICT_APP */
-        val PROTECTED_PACKAGES = setOf(
-            "com.google.android.gms",       // GMS — FCM push foundation
-            "com.google.android.gsf",       // Google Services Framework
-            "com.zing.zalo",                // Zalo — non-FCM, persistent TCP socket + VoIP calls
-            "com.nhandev.notificationfix",   // Self-protection — keep watcher alive
-        )
+        /** Default base packages that MUST always be in MILLET_NO_RESTRICT_APP */
+        val PROTECTED_PACKAGES = ProtectedAppsStorage.DEFAULT_SYSTEM_PACKAGES
 
         private var isExplicitlyStopped = false
 
@@ -336,9 +331,10 @@ class MilletWatcherService : Service() {
     // ── MILLET Protection Logic ──────────────────────────────────────────────
 
     private fun ensureMilletProtection() {
+        val targetPackages = ProtectedAppsStorage.getProtectedPackages(this)
         if (!canWriteSettings(this)) {
             Log.w(TAG, "WRITE_SETTINGS permission not granted — trying Shizuku fallback")
-            tryShizukuFallback(PROTECTED_PACKAGES.toList())
+            tryShizukuFallback(targetPackages.toList())
             return
         }
 
@@ -350,12 +346,12 @@ class MilletWatcherService : Service() {
                 current.split(",").map { it.trim() }.filter { it.isNotBlank() }.toMutableList()
             }
 
-            val missing = PROTECTED_PACKAGES.filter { pkg ->
+            val missing = targetPackages.filter { pkg ->
                 !entries.contains(pkg) && isPackageInstalled(pkg)
             }
 
             if (missing.isEmpty()) {
-                Log.d(TAG, "All protected packages present in MILLET ✓")
+                Log.d(TAG, "All protected packages (${targetPackages.size}) present in MILLET ✓")
                 return
             }
 
@@ -376,7 +372,7 @@ class MilletWatcherService : Service() {
             }
         } catch (e: Exception) {
             Log.e(TAG, "MILLET protection error: ${e.message}", e)
-            tryShizukuFallback(PROTECTED_PACKAGES.toList())
+            tryShizukuFallback(targetPackages.toList())
         }
     }
 
@@ -422,11 +418,14 @@ class MilletWatcherService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Bảo Vệ Thông Báo HyperOS",
-                NotificationManager.IMPORTANCE_LOW
+                "Bảo Vệ Ngầm Ẩn (NotificationFix)",
+                NotificationManager.IMPORTANCE_MIN
             ).apply {
-                description = "Duy trì kết nối push và chống kill ứng dụng Zalo & GMS"
+                description = "Chạy ngầm ẩn chống tắt ứng dụng Zalo, GMS và các app đã chọn"
                 setShowBadge(false)
+                enableLights(false)
+                enableVibration(false)
+                lockscreenVisibility = Notification.VISIBILITY_SECRET
             }
             val nm = getSystemService(NotificationManager::class.java)
             nm.createNotificationChannel(channel)
@@ -443,11 +442,13 @@ class MilletWatcherService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("🛡️ NotificationFix · Chạy Vĩnh Viễn")
+            .setContentTitle("NotificationFix (Chạy ngầm ẩn)")
             .setContentText(statusText)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setOngoing(true)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setPriority(NotificationCompat.PRIORITY_MIN)
+            .setVisibility(NotificationCompat.VISIBILITY_SECRET)
+            .setShowWhen(false)
             .setContentIntent(pendingIntent)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .build()

@@ -60,6 +60,8 @@ data class AppListUiState(
     val isAutoOptimizing: Boolean          = false,
     val isZaloProtected: Boolean           = false,
     val isProtectingZalo: Boolean          = false,
+    val isSelfImmune: Boolean              = false,
+    val isGrantingSelfImmunity: Boolean    = false,
 )
 
 @HiltViewModel
@@ -116,6 +118,7 @@ class AppListViewModel @Inject constructor(
                 val zaloProtected = fixEngine.isInMillet("com.zing.zalo")
                 val hasWriteSettings = MilletWatcherService.canWriteSettings(context)
                 val deviceProfile = fixEngine.getDeviceProfile()
+                val isSelfImmune = fixEngine.isSelfImmune()
 
                 _uiState.value = _uiState.value.copy(
                     allApps        = apps,
@@ -125,6 +128,7 @@ class AppListViewModel @Inject constructor(
                     isGmsProtected = gmsProtected,
                     isZaloProtected = zaloProtected,
                     deviceProfile  = deviceProfile,
+                    isSelfImmune   = isSelfImmune,
                     hasWriteSettingsPermission = hasWriteSettings,
                 )
             }
@@ -137,11 +141,15 @@ class AppListViewModel @Inject constructor(
             val gmsProtected = fixEngine.isInMillet("com.google.android.gms")
             val zaloProtected = fixEngine.isInMillet("com.zing.zalo")
             val deviceProfile = fixEngine.getDeviceProfile()
+            val isSelfImmune = fixEngine.isSelfImmune()
+            val hasWriteSettings = MilletWatcherService.canWriteSettings(context)
             _uiState.value = _uiState.value.copy(
                 privilegeMode  = privilege,
                 isGmsProtected = gmsProtected,
                 isZaloProtected = zaloProtected,
                 deviceProfile  = deviceProfile,
+                isSelfImmune   = isSelfImmune,
+                hasWriteSettingsPermission = hasWriteSettings,
             )
         }
     }
@@ -413,11 +421,12 @@ class AppListViewModel @Inject constructor(
     }
 
     /**
-     * Enables permanent immortality:
-     * - Grants NotificationFix self-immunity (Autostart + Boot + Doze WL)
-     * - Starts immortal Foreground Watcher Service
-     * - Deploys detached Linux shell watchdog daemon
-     * - Schedules AlarmManager repeating backup check
+     * Tự cấp toàn bộ quyền cho NotificationFix & Kích hoạt chạy ngầm vĩnh viễn:
+     * - Tự cấp AppOps: Autostart (10008), Boot (10007), Background Start (10021), Foreground (10023)
+     * - Tự cấp WRITE_SETTINGS & Doze Battery Whitelist
+     * - Kích hoạt MilletWatcherService chạy ngầm ẩn hoàn toàn (không hiện thông báo trên thanh trạng thái)
+     * - Triển khai Linux Shell Watchdog Daemon độc lập
+     * - Lên lịch Watchdog AlarmManager tự hồi sinh định kỳ và khi reboot máy
      */
     fun enablePermanentRunAndReboot() {
         val priv = _uiState.value.privilegeMode
@@ -426,17 +435,28 @@ class AppListViewModel @Inject constructor(
             return
         }
 
+        _uiState.value = _uiState.value.copy(
+            isGrantingSelfImmunity = true,
+            fixCurrentApp = "Đang tự cấp toàn bộ quyền tự chạy & chạy ngầm ẩn..."
+        )
+
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val selfLog = fixEngine.grantSelfImmunity()
                 val daemonLog = fixEngine.deployAndStartShellDaemon()
+                val isImmune = fixEngine.isSelfImmune()
 
                 _uiState.value = _uiState.value.copy(
+                    isGrantingSelfImmunity = false,
+                    isSelfImmune = isImmune,
+                    isWatcherRunning = true,
                     fixLogs = _uiState.value.fixLogs + listOf(selfLog, daemonLog),
-                    fixSuccessMessage = "🛡️ Chế độ Bất Tử & Auto-Reboot đã kích hoạt!\n" +
-                            "• Tự khởi động lại khi reboot máy\n" +
-                            "• Tự động hồi sinh khi bị hệ thống kill\n" +
-                            "• Linux Shell Daemon chạy ngầm độc lập",
+                    fixSuccessMessage = "⚡ ĐÃ TỰ CẤP TOÀN BỘ QUYỀN THÀNH CÔNG!\n\n" +
+                            "• Tự khởi chạy (Autostart 10008) & Khởi động cùng hệ thống (10007)\n" +
+                            "• Bỏ qua tối ưu hóa Pin & Quyền sửa cài đặt hệ thống (WRITE_SETTINGS)\n" +
+                            "• Đang chạy ngầm ẩn hoàn toàn (Không hiện icon trên thanh trạng thái)\n" +
+                            "• Bất tử sau reboot và tự động hồi sinh khi bị kill\n\n" +
+                            "💡 Giờ bạn có thể TẮT Developer Options để dùng app Ngân Hàng bình thường!",
                 )
             }
 
@@ -444,6 +464,8 @@ class AppListViewModel @Inject constructor(
             com.nhandev.notificationfix.domain.WatchdogAlarmReceiver.schedulePeriodicCheck(context)
         }
     }
+
+    fun enableSelfImmunityAndAutoRun() = enablePermanentRunAndReboot()
 
     // ── Toggle App Fix (Drawer) ──────────────────────────────────────────────
 

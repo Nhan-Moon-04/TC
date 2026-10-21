@@ -647,7 +647,7 @@ public final class DaggerNotificationFixApp_HiltComponents_SingletonC {
           return (T) AppModule_ProvideRootHelperFactory.provideRootHelper();
 
           case 4: // com.nhandev.notificationfix.domain.FixEngine 
-          return (T) AppModule_ProvideFixEngineFactory.provideFixEngine(singletonCImpl.provideShizukuHelperProvider.get(), singletonCImpl.provideRootHelperProvider.get(), singletonCImpl.provideDeviceProfileManagerProvider.get());
+          return (T) AppModule_ProvideFixEngineFactory.provideFixEngine(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule), singletonCImpl.provideShizukuHelperProvider.get(), singletonCImpl.provideRootHelperProvider.get(), singletonCImpl.provideDeviceProfileManagerProvider.get());
 
           case 5: // com.nhandev.notificationfix.domain.DeviceProfileManager 
           return (T) AppModule_ProvideDeviceProfileManagerFactory.provideDeviceProfileManager(singletonCImpl.provideShizukuHelperProvider.get(), singletonCImpl.provideRootHelperProvider.get());

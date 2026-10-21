@@ -97,8 +97,23 @@ fun HomeScreen(
         item {
             Box(modifier = Modifier.padding(horizontal = 16.dp)) {
                 PermanentKeepAliveCard(
+                    isImmune         = state.isSelfImmune,
                     isWatcherRunning = state.isWatcherRunning,
+                    isGranting       = state.isGrantingSelfImmunity,
                     onEnable         = { vm.enablePermanentRunAndReboot() }
+                )
+            }
+        }
+
+        item { Spacer(Modifier.height(12.dp)) }
+
+        // ── Bank Mode Guide & Status Card (Tắt Developer Options để dùng ngân hàng)
+        item {
+            Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                BankModeGuideCard(
+                    privilegeMode    = state.privilegeMode,
+                    isWatcherRunning = state.isWatcherRunning,
+                    hasWriteSettings = state.hasWriteSettingsPermission,
                 )
             }
         }
@@ -922,7 +937,9 @@ private fun ZaloVoIpCard(
 
 @Composable
 private fun PermanentKeepAliveCard(
+    isImmune: Boolean,
     isWatcherRunning: Boolean,
+    isGranting: Boolean,
     onEnable: () -> Unit,
 ) {
     Box(
@@ -930,9 +947,18 @@ private fun PermanentKeepAliveCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
             .background(
-                Brush.linearGradient(listOf(Color(0xFF10132A), Color(0xFF090A17)))
+                Brush.linearGradient(
+                    if (isImmune)
+                        listOf(Color(0xFF0F1E2A), Color(0xFF08121A))
+                    else
+                        listOf(Color(0xFF1E1428), Color(0xFF100918))
+                )
             )
-            .border(1.dp, BlueAccent.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
+            .border(
+                1.dp,
+                if (isImmune) BlueAccent.copy(alpha = 0.45f) else OrangeGlow.copy(alpha = 0.45f),
+                RoundedCornerShape(18.dp)
+            )
             .padding(16.dp),
     ) {
         Column {
@@ -946,21 +972,29 @@ private fun PermanentKeepAliveCard(
                         modifier = Modifier
                             .size(36.dp)
                             .clip(RoundedCornerShape(10.dp))
-                            .background(BlueDim),
+                            .background(if (isImmune) BlueDim else OrangeDim),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Icon(Icons.Rounded.AllInclusive, null, tint = BlueAccent, modifier = Modifier.size(20.dp))
+                        Icon(
+                            imageVector = if (isImmune) Icons.Rounded.AllInclusive else Icons.Rounded.Bolt,
+                            contentDescription = null,
+                            tint = if (isImmune) BlueAccent else OrangeGlow,
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
                     Spacer(Modifier.width(10.dp))
                     Column {
                         Text(
-                            text = "Chạy Vĩnh Viễn & Chống Tắt App",
+                            text = if (isImmune) "Đang Chạy Ngầm Ẩn (Bất Tử)" else "Tự Cấp Quyền & Chạy Ngầm",
                             color = TextPrimary,
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp,
                         )
                         Text(
-                            text = "Tự khởi động khi reboot · Tự hồi sinh khi bị kill",
+                            text = if (isImmune)
+                                "Không hiện icon thanh trạng thái · Tự sống lại sau reboot"
+                            else
+                                "1 chạm tự cấp toàn bộ quyền tự chạy & chạy ngầm ẩn",
                             color = TextSecondary,
                             fontSize = 11.sp,
                         )
@@ -970,12 +1004,12 @@ private fun PermanentKeepAliveCard(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
-                        .background(if (isWatcherRunning) GreenOKDim else BlueDim)
+                        .background(if (isImmune) GreenOKDim else YellowWarnDim)
                         .padding(horizontal = 8.dp, vertical = 3.dp)
                 ) {
                     Text(
-                        text = if (isWatcherRunning) "Đang Giữ App" else "Khả Dụng",
-                        color = if (isWatcherRunning) GreenOK else BlueAccent,
+                        text = if (isImmune) "Đang Bảo Vệ" else "Cần Kích Hoạt",
+                        color = if (isImmune) GreenOK else YellowWarn,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -984,14 +1018,30 @@ private fun PermanentKeepAliveCard(
 
             Spacer(Modifier.height(10.dp))
 
-            val mechanisms = listOf(
-                "Tự khởi động lại khi reboot (BootReceiver + Autostart OP 10008)",
-                "Immortal Service: AlarmManager tự hồi sinh trong 1s nếu bị xóa khỏi Đa nhiệm",
-                "Linux Shell Daemon chạy ngầm độc lập (/data/local/tmp)",
-            )
+            val mechanisms = if (isImmune) {
+                listOf(
+                    "✓ Đã tự cấp quyền Tự khởi chạy (Autostart 10008) & Boot (10007)",
+                    "✓ Đã cấp quyền Khởi chạy nền (10021) & Bỏ qua tối ưu Pin (Doze WL)",
+                    "✓ Chạy ngầm ẩn hoàn toàn (Không hiện thông báo trên thanh trạng thái)",
+                    "✓ Tự hồi sinh khi bị kill hoặc reboot (Watchdog Alarm + BootReceiver)",
+                )
+            } else {
+                listOf(
+                    "Tự động cấp quyền Tự khởi chạy (Autostart) và Boot completed",
+                    "Tự động đưa app vào Whitelist tiết kiệm pin và quyền WRITE_SETTINGS",
+                    "Kích hoạt dịch vụ chạy ngầm ẩn hoàn toàn (không phiền thanh trạng thái)",
+                    "Đảm bảo app giữ kết nối vĩnh viễn và không bị HyperOS đóng",
+                )
+            }
+
             mechanisms.forEach { m ->
                 Row(modifier = Modifier.padding(vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.Security, null, tint = BlueAccent, modifier = Modifier.size(13.dp))
+                    Icon(
+                        imageVector = if (isImmune) Icons.Rounded.CheckCircle else Icons.Rounded.Security,
+                        contentDescription = null,
+                        tint = if (isImmune) GreenOK else BlueAccent,
+                        modifier = Modifier.size(13.dp)
+                    )
                     Spacer(Modifier.width(6.dp))
                     Text(m, color = TextSecondary, fontSize = 11.sp)
                 }
@@ -1001,20 +1051,130 @@ private fun PermanentKeepAliveCard(
 
             Button(
                 onClick = onEnable,
+                enabled = !isGranting,
                 modifier = Modifier.fillMaxWidth().height(42.dp),
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = BlueAccent,
+                    containerColor = if (isImmune) BlueAccent else OrangeGlow,
                     contentColor = Color.White,
                 ),
             ) {
-                Icon(Icons.Rounded.Shield, null, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    text = "🛡️  Kích Hoạt Chạy Vĩnh Viễn & Auto Reboot",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
+                if (isGranting) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp,
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "Đang tự cấp toàn bộ quyền...",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                } else {
+                    Icon(
+                        imageVector = if (isImmune) Icons.Rounded.Shield else Icons.Rounded.Bolt,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = if (isImmune)
+                            "✓ Đã Tự Cấp Toàn Bộ Quyền (Nhấn để làm mới)"
+                        else
+                            "⚡ TỰ CẤP TOÀN BỘ QUYỀN & CHẠY NGẦM NGAY",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Bank Mode Guide & Status Card (Tắt Developer Options để dùng app ngân hàng)
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun BankModeGuideCard(
+    privilegeMode: PrivilegeMode,
+    isWatcherRunning: Boolean,
+    hasWriteSettings: Boolean,
+) {
+    val isDevOff = privilegeMode == PrivilegeMode.NONE
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(
+                Brush.linearGradient(
+                    listOf(Color(0xFF0F1E19), Color(0xFF07120E))
                 )
+            )
+            .border(1.dp, GreenOK.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
+            .padding(16.dp),
+    ) {
+        Column {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(GreenOKDim),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(Icons.Rounded.AccountBalance, null, tint = GreenOK, modifier = Modifier.size(20.dp))
+                    }
+                    Spacer(Modifier.width(10.dp))
+                    Column {
+                        Text(
+                            text = "Chế Độ Dùng App Ngân Hàng",
+                            color = TextPrimary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                        )
+                        Text(
+                            text = "An toàn 100% khi TẮT Developer Options",
+                            color = TextSecondary,
+                            fontSize = 11.sp,
+                        )
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (isDevOff) GreenOKDim else BlueDim)
+                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                ) {
+                    Text(
+                        text = if (isDevOff) "Đã Tắt Dev (Ngân Hàng OK)" else "Sẵn Sàng Thiết Lập",
+                        color = if (isDevOff) GreenOK else BlueAccent,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(10.dp))
+
+            val bankPoints = listOf(
+                "1. AppOps & Pin vĩnh viễn: Toàn bộ quyền Tự chạy (10008), Cuộc gọi Zalo (10021) và Doze whitelist đã lưu cứng vào hệ điều hành Android, không bao giờ mất khi tắt Developer Options.",
+                "2. Chạy ngầm độc lập: NotificationFix dùng quyền hệ thống WRITE_SETTINGS để liên tục bảo vệ MILLET_NO_RESTRICT_APP cho tất cả các app bạn chọn mà không cần Shizuku hay ADB.",
+                "3. Mở app ngân hàng bình thường: Sau khi tối ưu xong, bạn chỉ cần vào Cài đặt > Tắt 'Tùy chọn nhà phát triển' là mở Vietcombank, MB, Techcombank, BIDV, Cake... không bao giờ bị chặn!",
+            )
+            bankPoints.forEach { point ->
+                Row(modifier = Modifier.padding(vertical = 3.dp)) {
+                    Icon(Icons.Rounded.CheckCircle, null, tint = GreenOK, modifier = Modifier.size(14.dp).padding(top = 2.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(point, color = TextSecondary, fontSize = 11.sp, lineHeight = 16.sp)
+                }
             }
         }
     }

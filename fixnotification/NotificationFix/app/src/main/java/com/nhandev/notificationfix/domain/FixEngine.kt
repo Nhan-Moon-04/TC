@@ -1,7 +1,9 @@
 package com.nhandev.notificationfix.domain
 
+import android.content.Context
 import com.nhandev.notificationfix.domain.model.FixAction
 import com.nhandev.notificationfix.domain.model.FixLogEntry
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,6 +32,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class FixEngine @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val shizuku: ShizukuHelper,
     private val root: RootHelper,
     private val deviceProfileManager: DeviceProfileManager,
@@ -200,6 +203,9 @@ class FixEngine @Inject constructor(
 
         // Step 0: Ensure GMS FCM Core is immune to Greezer freeze
         logs += ensureGmsDeepProtection()
+
+        // Step 0.5: Persist package for Bank Mode / Developer Options off survival
+        ProtectedAppsStorage.addPackage(context, packageName)
 
         // Step 1: Add target app to MILLET_NO_RESTRICT_APP (THE critical fix)
         val milletOk = ensureMilletNoRestrict(packageName)
@@ -439,6 +445,7 @@ class FixEngine @Inject constructor(
     fun grantSelfImmunity(): FixLogEntry {
         val selfPkg = "com.nhandev.notificationfix"
         ensureMilletNoRestrict(selfPkg)
+        ProtectedAppsStorage.addPackage(context, selfPkg)
         run("dumpsys deviceidle whitelist +$selfPkg")
         run("am set-standby-bucket $selfPkg active")
         run("cmd appops set $selfPkg RUN_IN_BACKGROUND allow")
@@ -450,6 +457,13 @@ class FixEngine @Inject constructor(
         run("cmd appops set $selfPkg 10021 allow") // Background start
         run("cmd appops set $selfPkg 10023 allow") // Foreground service
         run("cmd appops set $selfPkg 10053 allow") // Autostart switch
+        run("cmd appops set $selfPkg AUTO_START allow")
+        run("cmd appops set $selfPkg BOOT_COMPLETED allow")
+        run("cmd appops set $selfPkg WRITE_SETTINGS allow")
+        run("cmd appops set $selfPkg SYSTEM_ALERT_WINDOW allow")
+
+        // Ẩn thông báo thanh trạng thái (set notification channel importance = 1 / MIN)
+        run("cmd notification set_notification_channel_importance $selfPkg millet_watcher_silent_v2 1")
 
         val uidResult = run("cmd package list packages -U $selfPkg 2>/dev/null | head -1")
         val uidMatch = Regex("uid:(\\d+)").find(uidResult.output)
@@ -462,8 +476,19 @@ class FixEngine @Inject constructor(
             appLabel    = "NotificationFix App",
             action      = FixAction.FIX_SELF_IMMUNITY,
             success     = true,
-            message     = "NotificationFix: Đã cấp quyền Bất Tử (MILLET + Doze WL + Autostart Reboot + Net WL)",
+            message     = "NotificationFix: Đã cấp quyền Bất Tử (Tự chạy + Doze WL + WRITE_SETTINGS + Ẩn thông báo)",
         )
+    }
+
+    /** Check if NotificationFix has already granted itself all immunity permissions */
+    fun isSelfImmune(): Boolean {
+        val selfPkg = "com.nhandev.notificationfix"
+        val inMillet = isInMillet(selfPkg)
+        val autostart = run("cmd appops get $selfPkg 10008").output.contains("allow", ignoreCase = true)
+        val doze = run("dumpsys deviceidle whitelist").output.contains(selfPkg)
+        val writeSettings = MilletWatcherService.canWriteSettings(context) ||
+            run("cmd appops get $selfPkg WRITE_SETTINGS").output.contains("allow", ignoreCase = true)
+        return (inMillet && autostart && doze) || writeSettings
     }
 
     /**
@@ -579,6 +604,9 @@ class FixEngine @Inject constructor(
             logs += fixZaloVoIPProtection()
         }
 
+        // Persist all installed and protected packages
+        ProtectedAppsStorage.addPackages(context, installedPackages)
+
         // 4. Immunity for NotificationFix app itself (reboot survival + unkillable)
         logs.add(grantSelfImmunity())
 
@@ -593,6 +621,7 @@ class FixEngine @Inject constructor(
     /** Reset all settings back to system default (turn off autostart, reset battery & wake lock). */
     fun restoreAll(packageName: String, appLabel: String): List<FixLogEntry> {
         removeMilletNoRestrict(packageName)
+        ProtectedAppsStorage.removePackage(context, packageName)
         run("am set-standby-bucket $packageName working_set")
 
         // Remove from Greezer LM allowlist if possible

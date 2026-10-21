@@ -39,10 +39,11 @@ object AppModule {
 
     @Provides @Singleton
     fun provideFixEngine(
+        @ApplicationContext ctx: Context,
         shizuku: ShizukuHelper,
         root: RootHelper,
         deviceProfileManager: com.nhandev.notificationfix.domain.DeviceProfileManager,
-    ) = FixEngine(shizuku, root, deviceProfileManager)
+    ) = FixEngine(ctx, shizuku, root, deviceProfileManager)
 
     @Provides @Singleton
     fun provideStatusChecker(
